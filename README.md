@@ -1,3 +1,3 @@
-# Allra Backend Assignment
+# Market Project
 
-지원자: 오찬석
+오찬석
