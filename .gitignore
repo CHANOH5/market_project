@@ -1,0 +1,19 @@
+@"
+# Java/Gradle
+/.gradle/
+/build/
+/out/
+
+# DB & Runtime
+/mysql_data/
+/logs/
+/dbdata/
+
+# IDE
+**/*.iml
+/.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Set-Content -Encoding utf8 .gitignore
