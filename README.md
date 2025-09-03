@@ -19,14 +19,22 @@
 
 ## 기능 Method URL 설명
 
-상품 GET /api/products 조건별 상품 목록 조회 (페이징)
+### 유저
+GET /api/user 신규 사용자 생성
+POST /apai/user 모든 사용자 조회
+PUT /api/user/{id} 특정 사용자 정보 수정
+DELETE /api/user/{id} 특정 사용자 탈퇴 처리
+### 상품
+GET /api/products 조건별 상품 목록 조회 (페이징)
 GET /api/products/{productId} 특정 상품 상세 정보 조회
-장바구니 POST /api/cart/items 장바구니에 상품 추가
+### 장바구니
+POST /api/cart/items 장바구니에 상품 추가
 GET /api/cart 현재 사용자의 장바구니 조회
 PATCH /api/cart/items/{cartItemId} 장바구니 상품 수량 변경
 DELETE /api/cart/items/{cartItemId} 장바구니 특정 상품 삭제
 DELETE /api/cart/items 장바구니 모든 상품 비우기
-주문/결제 POST /api/orders 장바구니 상품으로 주문 생성
+### 주문/결제
+POST /api/orders 장바구니 상품으로 주문 생성
 GET /api/orders/{orderId} 특정 주문 내역 조회
 POST /api/orders/{orderId}/cancel 주문 취소
 POST /api/payments/complete 결제 완료 처리 (외부 API 콜백)

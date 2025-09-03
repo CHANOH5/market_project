@@ -1,0 +1,16 @@
+package com.cs.market;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
+
+@SpringBootApplication
+public class AllraApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AllraApplication.class, args);
+	}
+
+}
