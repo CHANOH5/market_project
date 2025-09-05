@@ -19,15 +19,15 @@ public class CartDetailResponseDTO {
     private List<CartItemResponseDTO> items;
     private Integer itemCount;
     private Integer totalQuantity;
-    private BigDecimal totalPrice;
+    private BigDecimal totalAmount;
 
-    public CartDetailResponseDTO(Long cartId, Long userId, List<CartItemResponseDTO> items, Integer totalQuantity, BigDecimal totalPrice) {
+    public CartDetailResponseDTO(Long cartId, Long userId, List<CartItemResponseDTO> items, Integer totalQuantity, BigDecimal totalAmount) {
         this.cartId = cartId;
         this.userId = userId;
         this.items = items;
         this.itemCount = items.size();
         this.totalQuantity = totalQuantity;
-        this.totalPrice = totalPrice;
+        this.totalAmount = totalAmount;
     } // constructor
 
     public static CartDetailResponseDTO from(Cart cart) {
@@ -41,7 +41,7 @@ public class CartDetailResponseDTO {
                 .mapToInt(CartItemResponseDTO::getQuantity)
                 .sum();
 
-        BigDecimal totalPrice = items.stream()
+        BigDecimal totalAmount = items.stream()
                 .map(CartItemResponseDTO::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -50,7 +50,7 @@ public class CartDetailResponseDTO {
                 cart.getUser().getId(),
                 items,
                 totalQuantity,
-                totalPrice
+                totalAmount
         );
 
     } // for

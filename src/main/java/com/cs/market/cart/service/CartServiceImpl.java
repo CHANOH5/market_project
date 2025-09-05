@@ -1,7 +1,6 @@
 package com.cs.market.cart.service;
 
 import com.cs.market.cart.dto.CartDetailResponseDTO;
-import com.cs.market.cart.dto.CartItemRequestDTO;
 import com.cs.market.cart.entity.Cart;
 import com.cs.market.cart.entity.CartItem;
 import com.cs.market.cart.repository.CartItemRepository;

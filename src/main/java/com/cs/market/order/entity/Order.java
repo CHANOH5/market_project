@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -53,7 +54,7 @@ public class Order {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "order_id")
-    private java.util.List<OrderItem> items = new java.util.ArrayList<>();
+    private List<OrderItem> items = new java.util.ArrayList<>();
 
     public  Order(User user, BigDecimal totalAmount) {
         this.user = user;
@@ -106,7 +107,7 @@ public class Order {
         this.status = OrderStatus.CANCELLED;
     }
 
-    /** 아이템 합계를 반영할 때 사용할 안전한 증가 메서드 */
+    /** 아이템 합계를 반영할 때 사용할 증가 메서드 */
     public void increaseTotalAmount(BigDecimal delta) {
         if (delta == null || delta.signum() < 0) {
             throw new IllegalArgumentException("amount must be non-negative");

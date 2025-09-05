@@ -31,8 +31,8 @@ public class OrderServiceImpl implements OrderService {
         this.productRepository = productRepository;
     } // constructor
 
-    @Transactional
     @Override
+    @Transactional
     public Long createOrder(Long userId, List<CartLine> lines) {
 
         User user = userRepository.findById(userId)
