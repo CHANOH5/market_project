@@ -27,6 +27,9 @@ public class OrderItem {
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "product_id", insertable = false, updatable = false)
 //    private Product product;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     // 스냅샷 + 쓰기 주인
     @Column(name = "product_id", nullable = false)
@@ -70,6 +73,10 @@ public class OrderItem {
     public BigDecimal getLineTotal() {
         // 상품 가격 * 수량
         return this.unitPrice.multiply(BigDecimal.valueOf(this.quantity));
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
 } // end class

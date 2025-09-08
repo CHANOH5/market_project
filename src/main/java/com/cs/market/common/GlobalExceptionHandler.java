@@ -1,9 +1,12 @@
 package com.cs.market.common;
 
+import com.cs.market.global.exception.PaymentProviderException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -23,6 +26,14 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new SimpleError("INVALID_STATE", msg));
+    }
+
+    @ExceptionHandler(PaymentProviderException.class)
+    public ResponseEntity<Map<String, Object>> handlePayment(PaymentProviderException e) {
+        int status = e.getHttpStatus() > 0 ? e.getHttpStatus() : 502;
+        return ResponseEntity.status(status).body(
+                Map.of("status", "FAILED", "message", e.getMessage())
+        );
     }
 
 }

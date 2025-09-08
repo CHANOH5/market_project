@@ -1,8 +1,8 @@
 package com.cs.market.payment.client;
 
 import com.cs.market.global.exception.PaymentProviderException;
-import com.cs.market.payment.dto.PaymentRequestDTO;
 import com.cs.market.payment.dto.PaymentResponseDTO;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,20 +16,18 @@ public class PaymentClient {
 
    private final WebClient webClient;
 
-    public PaymentClient(WebClient webClient) {
+    public PaymentClient(@Qualifier("paymentWebClient") WebClient webClient) {
         this.webClient = webClient;
     } // constructor
 
-    public Mono<PaymentResponseDTO> charge(PaymentRequestDTO dto, long amount, String idemKey) {
+    public Mono<PaymentResponseDTO> charge(Long orderId, long amount, String idemKey) {
         return webClient.post()
-                .uri("/payments/charge")
+                .uri("/api/v1/payment")
                 .header("Idempotency-Key", idemKey)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .bodyValue(Map.of(
-                        "amount", amount,
-                        "currency", dto.getCurrency(),
-                        "method", dto.getMethod(),
-                        "card", dto.getCard()
+                        "orderId", String.valueOf(orderId),
+                        "amount", amount
                 ))
                 .retrieve()
                 .onStatus(s -> s.is4xxClientError(),

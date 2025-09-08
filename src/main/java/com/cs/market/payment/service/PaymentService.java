@@ -5,13 +5,16 @@ import com.cs.market.order.entity.OrderStatus;
 import com.cs.market.order.repository.OrderRepository;
 import com.cs.market.payment.client.PaymentClient;
 import com.cs.market.payment.dto.PaymentRequestDTO;
-import com.cs.market.payment.entity.PaymentAttempt;
-import com.cs.market.payment.entity.PaymentStatus;
+import com.cs.market.payment.dto.PaymentResponseDTO;
+import com.cs.market.payment.entity.*;
 import com.cs.market.payment.repository.PaymentAttemptAuditRepository;
 import com.cs.market.payment.repository.PaymentAttemptRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -40,6 +43,8 @@ public class PaymentService {
     private final PaymentAttemptRepository attemptRepository;
     private final PaymentAttemptAuditRepository attemptAuditRepository;
     private final PaymentClient paymentClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     public PaymentService(OrderRepository orderRepository, PaymentAttemptRepository attemptRepository, PaymentAttemptAuditRepository attemptAuditRepository, PaymentClient paymentClient) {
         this.orderRepository = orderRepository;
@@ -59,7 +64,25 @@ public class PaymentService {
      * @return          Mono<Void> 비동기 완료 신호로 완료되면 200 응답 같은 응답 반환
      */
     public Mono<Void> pay(Long orderId, PaymentRequestDTO dto) {
-        return null;
+        return Mono.fromCallable(() -> prepareAttemptBlocking(orderId, dto))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(attempt -> {
+                    // 감사 로그: REQUEST
+                    return Mono.fromRunnable(() ->
+                                    saveAudit(attempt.getId(),
+                                            AuditEvent.REQUEST,
+                                            null,
+                                            null,
+                                            toJson(dto),
+                                            null))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .then(
+                                    paymentClient.charge(orderId, attempt.getAmount().longValue(), attempt.getIdempotencyKey())
+                                            .flatMap(resp -> handleSuccess(attempt, orderId, resp))
+                                            .onErrorResume(ex -> handleFailure(attempt, orderId, ex))
+                            );
+                })
+                .then();
     } // end class
 
     // =========== 블로킹 섹션 ============
@@ -161,19 +184,59 @@ public class PaymentService {
      * @param errMsg        에러 메시지
      * @param respJson      응답 원문
      */
-//    @Transactional
-//    private void saveAudit(Long attemptId, String event, Integer httpStatus, String errMsg, String respJson) {
-//
-//    }
+    private void saveAudit(Long attemptId,
+                           AuditEvent event,
+                           Integer httpStatus,
+                           String errMsg,
+                           String reqJson,
+                           String respJson) {
+        PaymentAttemptAudit audit = PaymentAttemptAudit.of(
+                attemptId,
+                AuditLevel.INFO,
+                event,
+                httpStatus,
+                reqJson,
+                respJson,
+                null,
+                errMsg
+        );
+        attemptAuditRepository.save(audit);
+    }
+
+    // ====== 논블로킹 보조 ======
+
+    private Mono<Void> handleSuccess(PaymentAttempt attempt, Long orderId, PaymentResponseDTO resp) {
+        return Mono.fromRunnable(() -> {
+                    markSuccessBlocking(orderId, attempt.getId(), resp.getTransactionId());
+                    saveAudit(attempt.getId(), AuditEvent.SUCCESS, 200, null, null, toJson(resp));
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .then();
+    }
+
+    private Mono<Void> handleFailure(PaymentAttempt attempt, Long orderId, Throwable ex) {
+        return Mono.fromRunnable(() -> {
+                    saveAudit(attempt.getId(), AuditEvent.FAILURE, null, ex.getMessage(), null, null);
+                    String failureCode = "PROVIDER_ERROR";
+                    String externalId = null;
+                    markFailedBlocking(orderId, attempt.getId(), failureCode, externalId);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .then();
+    }
 
     /**
      * 요청/응답/오류를 JSON 문자열로 직렬화해서 감사 로그에 저장
      * @param o
      * @return
      */
-//    private String toJson(Object o) {
-//        return null;
-//    }
+    private String toJson(Object o) {
+        try {
+            return o == null ? null : objectMapper.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            return "{\"jsonError\":\"" + e.getMessage() + "\"}";
+        }
+    }
 
 } // end class
 

@@ -52,9 +52,9 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<OrderItem> items = new java.util.ArrayList<>();
+//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JoinColumn(name = "order_id")
+//    private List<OrderItem> items = new java.util.ArrayList<>();
 
     public  Order(User user, BigDecimal totalAmount) {
         this.user = user;
@@ -120,7 +120,8 @@ public class Order {
         if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("아이템 추가는 CREATED 상태에서만 가능합니다.");
         }
-        this.items.add(item);
+        item.setOrder(this);
+//        this.items.add(item);
         increaseTotalAmount(item.getLineTotal());
     }
 

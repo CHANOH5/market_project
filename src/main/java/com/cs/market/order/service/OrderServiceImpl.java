@@ -3,6 +3,7 @@ package com.cs.market.order.service;
 import com.cs.market.cart.dto.CartLine;
 import com.cs.market.order.entity.Order;
 import com.cs.market.order.entity.OrderItem;
+import com.cs.market.order.repository.OrderItemRepository;
 import com.cs.market.order.repository.OrderRepository;
 import com.cs.market.product.entity.Product;
 import com.cs.market.product.entity.ProductStatus;
@@ -12,10 +13,7 @@ import com.cs.market.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,11 +21,13 @@ public class OrderServiceImpl implements OrderService {
 
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
 
-    public OrderServiceImpl(UserRepository userRepository, OrderRepository orderRepository, ProductRepository productRepository) {
+    public OrderServiceImpl(UserRepository userRepository, OrderRepository orderRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
     } // constructor
 
@@ -65,8 +65,12 @@ public class OrderServiceImpl implements OrderService {
 
         // 3) 주문 생성
         Order order = Order.create(user);
+        orderRepository.save(order);
 
         // 4) 선예약 + 스냅샷 아이템 추가
+
+        List<OrderItem> items = new ArrayList<>();
+
         for (CartLine line : lines) {
             Product p = productMap.get(line.getProductId());
 
@@ -84,15 +88,23 @@ public class OrderServiceImpl implements OrderService {
                     p.getPrice(),
                     line.getQuantity()
             );
-            order.addItem(item);
+//            order.addItem(item);
+            item.setOrder(order);                             // ★ FK 즉시 세팅 (ManyToOne 소유자)
+            order.increaseTotalAmount(item.getLineTotal());   // ★ 합계 반영
+            items.add(item);                                  // ★ 나중에 일괄 저장
         } // for
 
         // 5) 결제 대기 상태로 전이(선예약 완료 의미)
-        order.markPaymentPending();
+//        order.markPaymentPending();
 
         // 6) 저장(더티체킹으로 Product.stock/version도 반영)
         // order 객체는 DB에서 조회해온 '기존' 엔티티가 아니라, Order.create(user)를 통해 메소드 내부에서 새로 생성된(New/Transient) 엔티티이기 때문에 반드시 save 필요함
-        orderRepository.save(order);
+//        orderRepository.save(order);
+
+        orderItemRepository.saveAll(items);                   // ★ 자식 저장(이제 order_id 포함 INSERT)
+        order.markPaymentPending();                           // 그대로
+        orderRepository.save(order);                          // ★ 변경사항 반영(선택: flush 용도)
+
 
         return order.getId();
 

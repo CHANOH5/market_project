@@ -46,6 +46,7 @@ public class Product {
     private Category category;
 
     @Version
+    @Column(name = "version", nullable = false)
     private Long version;
 
     @CreatedBy

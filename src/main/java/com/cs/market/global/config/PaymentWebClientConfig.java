@@ -26,7 +26,7 @@ public class PaymentWebClientConfig {
                 );
 
         return WebClient.builder()
-                .baseUrl("https://market-pay.beeceptor.com")         // beeceptor 모의 API 주소
+                .baseUrl("https://cs-market.free.beeceptor.com")         // beeceptor 모의 API 주소
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     } // paymentWebClient

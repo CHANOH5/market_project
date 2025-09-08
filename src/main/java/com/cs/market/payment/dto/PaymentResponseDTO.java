@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PaymentResponseDTO {
 
-    private String paymentId;
     private String status;              // "succeeded" / "failed"
-    private String approveAt;
-    private String reason;              // 실패 사유
+    private String transactionId;
+    private String message;              // 실패 사유
 
 } // end class
