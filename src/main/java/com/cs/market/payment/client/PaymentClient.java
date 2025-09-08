@@ -1,10 +1,15 @@
 package com.cs.market.payment.client;
 
+import com.cs.market.global.exception.PaymentProviderException;
 import com.cs.market.payment.dto.PaymentRequestDTO;
 import com.cs.market.payment.dto.PaymentResponseDTO;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 @Component
 public class PaymentClient {
@@ -16,8 +21,24 @@ public class PaymentClient {
     } // constructor
 
     public Mono<PaymentResponseDTO> charge(PaymentRequestDTO dto, long amount, String idemKey) {
-
+        return webClient.post()
+                .uri("/payments/charge")
+                .header("Idempotency-Key", idemKey)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(Map.of(
+                        "amount", amount,
+                        "currency", dto.getCurrency(),
+                        "method", dto.getMethod(),
+                        "card", dto.getCard()
+                ))
+                .retrieve()
+                .onStatus(s -> s.is4xxClientError(),
+                        r -> r.bodyToMono(String.class)
+                                .flatMap(b -> Mono.error(new PaymentProviderException("4xx error: " + b))))
+                .onStatus(s -> s.is5xxServerError(),
+                        r -> r.bodyToMono(String.class)
+                                .flatMap(b -> Mono.error(new PaymentProviderException("5xx error: " + b))))
+                .bodyToMono(PaymentResponseDTO.class);
     }
-
 
 } // end class

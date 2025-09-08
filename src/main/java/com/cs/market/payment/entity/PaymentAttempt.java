@@ -75,10 +75,10 @@ public class PaymentAttempt {
     /** 상태 전이 - 결제 성공 */
     public void success(String externalPaymentId) {
         if(this.status != PaymentStatus.PENDING) {
-
+            throw new IllegalStateException("결제 성공 전이는 PENDING에서만 가능합니다.");
         }
         if(externalPaymentId == null || externalPaymentId.isEmpty()) {
-
+            throw new IllegalArgumentException("externalPaymentId required");
         }
 
         this.status = PaymentStatus.SUCCESS;
@@ -87,17 +87,20 @@ public class PaymentAttempt {
     }
 
     /** 상태 전이 - 결제 실패 */
-    public void fail(String externalPaymentId) {
+    public void fail(String code, String externalPaymentId) {
         if(this.status != PaymentStatus.PENDING) {
-
+            throw new IllegalStateException("결제 실패 전이는 PENDING에서만 가능합니다.");
         }
-        if(externalPaymentId == null || externalPaymentId.isEmpty()) {
 
+        if(code == null || code.isBlank()) {
+            throw new IllegalArgumentException("failureCode required");
         }
 
         this.status = PaymentStatus.FAILURE;
-        this.externalPaymentId = externalPaymentId;
-        // 실패를 Audit에 던져줘야하지않을까?
+        if(externalPaymentId != null && !externalPaymentId.isBlank()) {
+            this.externalPaymentId = externalPaymentId;
+        }
+
     }
 
 } // end class
