@@ -64,9 +64,9 @@ public class PaymentService {
      * @return          Mono<Void> 비동기 완료 신호로 완료되면 200 응답 같은 응답 반환
      */
     public Mono<Void> pay(Long orderId, PaymentRequestDTO dto) {
-        return Mono.fromCallable(() -> prepareAttemptBlocking(orderId, dto))
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(attempt -> {
+        return Mono.fromCallable(() -> prepareAttemptBlocking(orderId, dto)) // 블로킹 동작을 “Mono(비동기 Publisher)”로 감쌈, 즉 실행되는게 아니라 subscribe 시점에 Callable이 실행됨
+                .subscribeOn(Schedulers.boundedElastic()) // 전용 스레드풀인 boundedElastic에서 실행
+                .flatMap(attempt -> {                     // 첫 단계 결과를 받아서 외부 API 호출 paymentClient.charge 이어붙임, charge는 Mono<PaymentResponseDTO>를 반환하는 WebClient 호출(논블로킹)
                     // 감사 로그: REQUEST
                     return Mono.fromRunnable(() ->
                                     saveAudit(attempt.getId(),
@@ -111,6 +111,7 @@ public class PaymentService {
         } // if
 
         BigDecimal amount = order.getTotalAmount();
+
         String idempotencyKey = (dto.getIdempotencyKey() != null && !dto.getIdempotencyKey().isBlank())
                 ? dto.getIdempotencyKey()
                 : UUID.randomUUID().toString();
