@@ -89,16 +89,18 @@ class UserServiceTest {
         Long userId = 1L;
         UserRequestDTO dto = UserFixtures.aUserRequest("test", "test@example.com");
 
-//        User user = UserFixtures.aUser();
-        User user = mock(User.class);
+        User user =UserFixtures.aUser("beforeName", "before@example.com");
+        UserRequestDTO updateDTO = UserFixtures.aUserRequest("afterName", "after@example.com");
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         //when
-        userService.update(userId, dto);
+        userService.update(userId, updateDTO);
+
+        assertThat(user.getUserName()).isEqualTo("afterName");
+        assertThat(user.getEmail()).isEqualTo("after@example.com");
 
         //then
-        verify(userRepository).findById(userId);
-        verify(user).update(dto);
         verify(userRepository, never()).save(any());
 
     }
@@ -115,6 +117,8 @@ class UserServiceTest {
         userService.withdraw(userId);
 
         // then
+        assertThat(user.getStatus()).isEqualTo(0);
+
         verify(userRepository).findById(userId);
         verify(user).withdraw();
         verifyNoMoreInteractions(userRepository);
@@ -146,9 +150,13 @@ class UserServiceTest {
 
         // when
         userService.withdraw(userId);
-        userService.withdraw(userId);
+//        userService.withdraw(userId);
 
         // then
+        assertThatThrownBy(() -> userService.withdraw(userId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("존재하지 않는 회원");
+
         verify(user, times(2)).withdraw();
 
     }
