@@ -18,7 +18,7 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     @EntityGraph(attributePaths = {"items", "items.product"})
     Optional<Cart> findWithItemsByUserId(Long userId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE) // 선택: 동시 추가/증가 시 직렬화
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         select c from Cart c
         left join fetch c.items i
