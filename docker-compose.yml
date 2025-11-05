@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+    db:
+        image: mysql:8.0.25
+        container_name: market-mysql
+        command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci"]
+        environment:
+            MYSQL_ROOT_PASSWORD: "1234"
+            MYSQL_DATABASE: "market_dev"
+            MYSQL_USER: "study01"
+            MYSQL_PASSWORD: "1234"
+            TZ: Asia/Seoul
+        ports:
+            - "3307:3306"          # 호스트 3307 → 컨테이너 3306
+        volumes:
+            - dbdata:/var/lib/mysql
+            - ./db/mysql/initdb:/docker-entrypoint-initdb.d
+#            - ./db/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p1234"]
+            interval: 5s
+            timeout: 3s
+            retries: 20
+
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: market-backend
+        # env_file: .env   # ← 제거
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            SPRING_PROFILES_ACTIVE: docker
+            TZ: Asia/Seoul
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+
+#    frontend:
+#        image: nginx:alpine
+#        container_name: chat-frontend
+#        depends_on:
+#            - backend
+#        ports:
+#            - "8081:80"
+#        volumes:
+#            - ./frontend:/usr/share/nginx/html:ro
+#            - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
+#        restart: unless-stopped
+
+volumes:
+    dbdata:
