@@ -2,6 +2,8 @@ package com.market.market.user.service;
 
 import com.market.market.user.dto.UserRequestDTO;
 import com.market.market.user.dto.UserResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -17,7 +19,8 @@ public interface UserService {
      * 등록된 모든 사용자를 조회합니다.
      * @return 모든 사용자 정보 DTO가 담긴 리스트
      */
-    List<UserResponseDTO> findAll();
+//    List<UserResponseDTO> findAll();
+    Page<UserResponseDTO> findAll(Pageable pageable);
 
     /**
      * 특정 사용자의 상세정보를 조회합니다.

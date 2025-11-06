@@ -5,6 +5,8 @@ import com.market.market.user.dto.UserResponseDTO;
 import com.market.market.user.entity.User;
 import com.market.market.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,11 +36,12 @@ public class UserServiceImpl implements UserService {
     // TODO: 페이징 처리
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> findAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(UserResponseDTO::from)
-                .toList();
+    public Page<UserResponseDTO> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserResponseDTO::from);
+//        return userRepository.findAll(pageable)
+//                .stream()
+//                .map(UserResponseDTO::from)
+//                .toList();
     } // findAll()
 
     /**
