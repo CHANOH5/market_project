@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -48,7 +49,7 @@ public class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("findAll()")
+    @DisplayName("findAll(Pageable)")
     class FindAll {
 
         @Test
@@ -58,19 +59,38 @@ public class UserServiceTest {
             User u1 = mkUser(1L, "alice", "a@a.com");
             User u2 = mkUser(2L, "bob", "b@b.com");
             // mock 메서드가 호출되면 willReturn 값을 반환하도록 규정, 즉 DB대신 이 가짜 응답을 함
-            given(userRepository.findAll()).willReturn(List.of(u1, u2));
+            Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"));
+            Page<User> page = new PageImpl<>(
+                    List.of(u1, u2),
+                    pageable,
+                    2 // total elements
+            );
+//            given(userRepository.findAll()).willReturn(List.of(u1, u2));
+            given(userRepository.findAll(any(Pageable.class))).willReturn(page);
+
 
             // when
-            List<UserResponseDTO> result = userServiceImpl.findAll();
+//            List<UserResponseDTO> result = userServiceImpl.findAll();
+            Page<UserResponseDTO> result = userServiceImpl.findAll(pageable);
+
 
             // then
-            assertThat(result)
+            assertThat(result.getContent())
                     .hasSize(2)
-                    .extracting(UserResponseDTO::getUserName)// 특정 필드만 뽑아 검증
-                    .containsExactly("alice", "bob"); // 순서/내용 모두 동일해야 통과
-            then(userRepository).should(times(1)).findAll(); // 정확히 1회 호출되었는가?
-            then(userRepository).shouldHaveNoMoreInteractions(); //
-        }
+                    .extracting(UserResponseDTO::getUserName)
+                    .containsExactly("alice", "bob");
+
+
+            // then - 리포지토리 호출 검증 + 전달된 Pageable 검증
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            then(userRepository).should(times(1)).findAll(captor.capture());
+
+            Pageable sent = captor.getValue();
+            assertThat(sent.getPageNumber()).isEqualTo(0);
+            assertThat(sent.getPageSize()).isEqualTo(5);
+            assertThat(sent.getSort().getOrderFor("id").getDirection()).isEqualTo(Sort.Direction.DESC);
+
+            then(userRepository).shouldHaveNoMoreInteractions();        }
 
     }
 
