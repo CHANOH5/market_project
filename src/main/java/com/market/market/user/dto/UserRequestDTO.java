@@ -12,11 +12,14 @@ public class UserRequestDTO {
     private String password;
     private String email;
 
+    private String phone;
+
     @Builder
-    public UserRequestDTO(String userName, String password, String email) {
+    public UserRequestDTO(String userName, String password, String email, String phone) {
         this.userName = userName;
         this.password = password;
         this.email = email;
+        this.phone = phone;
     }
 
 } // end class

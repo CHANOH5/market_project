@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/product")
+@RequestMapping("/room")
 public class RoomController {
 
     private final RoomService roomService;
@@ -38,7 +38,7 @@ public class RoomController {
     /**
      * 특정 객실 정보 조회
      */
-    @GetMapping("/{roomId)")
+    @GetMapping("/{roomId}")
     public ResponseEntity<RoomResponseDTO> findById(@PathVariable Long roomId) {
 
         RoomResponseDTO byRoomId = roomService.findByRoomId(roomId);
