@@ -34,8 +34,14 @@ public class User {
     @Column(name = "email", nullable = false, length = 255)
     private String email;
 
+    @Column(name = "phone", nullable = false, length = 255)
+    private String phone;
+
     @Column(name = "status", nullable = false)
     private Integer status;
+
+    @Column(name = "role", nullable = false, length = 10)
+    private String role;
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, length = 255)
@@ -53,8 +59,40 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+        if (this.createdBy == null) {
+            this.createdBy = "SYSTEM";   // 임시 값
+        }
+        if (this.updatedBy == null) {
+            this.updatedBy = "SYSTEM";   // 임시 값
+        }
+        if (this.status == null) {
+            this.status = 1;
+        }
+        if (this.role == null) {
+            this.role = "USER";
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+        if (this.updatedBy == null) {
+            this.updatedBy = "SYSTEM";
+        }
+    }
+
     // 외부에서 new User로 만들지 못하게 막고, 도메인 코드에서 쓰는 유효 상태 생성은 of메서드로만 하도록 하기 위함
-    private User(String userName, String password, String email) {
+    private User(String userName, String password, String email, String phone) {
 
         if(userName == null || userName.isBlank()) throw new IllegalArgumentException("username required");
         if(password == null || password.isBlank()) throw new IllegalArgumentException("password required");
@@ -63,7 +101,9 @@ public class User {
         this.userName = userName;
         this.password = password;
         this.email = email;
+        this.phone = phone;
         this.status = 1;
+        this.role = "USER";
     } // constructor
 
     /**
@@ -74,8 +114,8 @@ public class User {
      * @return 생성된 도메인 정보 반환
      */
     // TODO: password 인코딩
-    public static User of(String userName, String password, String email) {
-        return new User(userName, password, email);
+    public static User of(String userName, String password, String email, String phone) {
+        return new User(userName, password, email, phone);
     } // of
 
     // ========= 변경 메서드 =========
@@ -96,6 +136,8 @@ public class User {
         this.status = 0;
     } // withdraw
 
+
+
     // ======== 세터 =========
 
     private void setUserName(String userName) {
@@ -109,5 +151,7 @@ public class User {
     }
 
     // TODO: 비밀번호 변경
+
+
 
 } // end class
