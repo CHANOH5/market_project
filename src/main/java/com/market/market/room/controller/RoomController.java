@@ -63,4 +63,7 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
+    // 특정 날짜기준 객실 예약 가능여부 조회, Room 검색(날짜+인원순), 월별 객실 예약 현황 조회 -> 공통적으로 예약정보와 같이 비교해서 봐야함
+
+
 } // end class
