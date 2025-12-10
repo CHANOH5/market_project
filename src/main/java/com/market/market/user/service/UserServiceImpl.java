@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void create(UserRequestDTO dto) {
 //        String encodedPw = passwordEncoder.encode(dto.getPassword());
-        User user = User.of(dto.getUserName(), dto.getPassword(), dto.getEmail(), dto.getPhone());
+        User user = User.of(dto.getLoginId(), dto.getUserName(), dto.getPassword(), dto.getEmail(), dto.getPhone());
         userRepository.save(user);
     } // create()
 

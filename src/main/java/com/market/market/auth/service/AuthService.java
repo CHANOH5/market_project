@@ -42,6 +42,7 @@ public class AuthService {
 
         // User 엔티티 생성 (필드 이름은 User 엔티티에 맞게 수정 필요할 수 있음)
         User user = User.of(
+                dto.loginId(),
                 dto.username(),        // userName
                 encodedPassword,       // password
                 dto.email(),            // email
