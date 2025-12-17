@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -102,6 +103,35 @@ public class ReservationServiceImpl implements ReservationService{
 
     } // findAll
 
+    @Override
+    public ReservationResponseDTO findByUserId(Long userId, Long reservationId) {
+
+        ReservationResponseDTO reservation = reservationRepository.findByIdAndUser_Id(reservationId, userId).map(ReservationResponseDTO::from)
+                .orElseThrow(
+                        () -> new IllegalStateException("예약을 찾을 수 없습니다.")
+                );
+
+        return reservation;
+    }
+    @Override
+    public void withdraw(Long userId, Long reservationId) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new IllegalStateException("user not found: " + userId);
+        });
+
+        if(user.getRole().equals("ADMIN")) {
+            throw new IllegalStateException("관리자 계정이 아닙니다.");
+        }
+
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new IllegalStateException("예약된 객실이 없습니다.")
+        );
+
+        reservationRepository.delete(reservation);
+
+    }
+
     private BigDecimal calculateTotalAmount(Room room, CreateReservationRequest request) {
 
         LocalDate checkIn = request.checkInDate();
@@ -129,5 +159,6 @@ public class ReservationServiceImpl implements ReservationService{
         // 3) 총 금액 = 기준 인원 요금 + 추가 인원 요금
         return baseTotal.add(extraTotal);
     } // calculateTotalAmount
+
 
 } // end class
