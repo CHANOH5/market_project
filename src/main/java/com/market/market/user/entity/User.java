@@ -25,6 +25,9 @@ public class User {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "login_id", nullable = false, length = 50)
+    private String loginId;
+
     @Column(name = "username", nullable = false, length = 255)
     private String userName;
 
@@ -92,12 +95,14 @@ public class User {
     }
 
     // 외부에서 new User로 만들지 못하게 막고, 도메인 코드에서 쓰는 유효 상태 생성은 of메서드로만 하도록 하기 위함
-    private User(String userName, String password, String email, String phone) {
+    private User(String loginId, String userName, String password, String email, String phone) {
 
+        if(loginId == null || loginId.isBlank()) throw new IllegalArgumentException("loginId required");
         if(userName == null || userName.isBlank()) throw new IllegalArgumentException("username required");
         if(password == null || password.isBlank()) throw new IllegalArgumentException("password required");
         if(email == null || email.isBlank()) throw new IllegalArgumentException("email required");
 
+        this.loginId = loginId;
         this.userName = userName;
         this.password = password;
         this.email = email;
@@ -114,8 +119,8 @@ public class User {
      * @return 생성된 도메인 정보 반환
      */
     // TODO: password 인코딩
-    public static User of(String userName, String password, String email, String phone) {
-        return new User(userName, password, email, phone);
+    public static User of(String loginId, String userName, String password, String email, String phone) {
+        return new User(loginId, userName, password, email, phone);
     } // of
 
     // ========= 변경 메서드 =========

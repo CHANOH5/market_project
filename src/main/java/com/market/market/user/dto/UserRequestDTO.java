@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserRequestDTO {
 
+    private String loginId;
     private String userName;
     private String password;
     private String email;
@@ -15,7 +16,8 @@ public class UserRequestDTO {
     private String phone;
 
     @Builder
-    public UserRequestDTO(String userName, String password, String email, String phone) {
+    public UserRequestDTO(String loginId, String userName, String password, String email, String phone) {
+        this.loginId = loginId;
         this.userName = userName;
         this.password = password;
         this.email = email;

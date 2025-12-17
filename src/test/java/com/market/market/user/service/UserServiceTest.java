@@ -42,8 +42,8 @@ public class UserServiceTest {
 
 
     // ====== Test Fixtures, 픽스처 팩토리 메서드: 반복적으로 쓰는 테스트 데이터 생성을 캡슐화 ======
-    private User mkUser(Long id, String name, String email) {
-        User user = User.of(name, "1234", email);
+    private User mkUser(Long id,String loginId,  String name, String email, String phone) {
+        User user = User.of(loginId, name, "1234", email, phone);
         ReflectionTestUtils.setField(user, "id", id); // 스프링 테스트 유틸. 접근 제한 필드를 리플렉션으로 강제 설정. 왜 필요? JPA @Id는 보통 DB가 생성하므로 setter가 없음.
         return user;
     }
@@ -56,8 +56,8 @@ public class UserServiceTest {
         @DisplayName("GIVEN 사용자 2명이 저장되어 있을 때 WHEN 전체 조회하면 THEN DTO 리스트로 매핑되어 반환된다")
         void 전체사용자조회_성공() {
             // given
-            User u1 = mkUser(1L, "alice", "a@a.com");
-            User u2 = mkUser(2L, "bob", "b@b.com");
+            User u1 = mkUser(1L, "alice", "a@a.com", "01012341234");
+            User u2 = mkUser(2L, "bob", "b@b.com", "01012341234");
             // mock 메서드가 호출되면 willReturn 값을 반환하도록 규정, 즉 DB대신 이 가짜 응답을 함
             Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"));
             Page<User> page = new PageImpl<>(
@@ -102,7 +102,7 @@ public class UserServiceTest {
         @DisplayName("GIVEN 존재하는 사용자 ID WHEN 단건 조회 THEN DTO로 반환된다")
         void 단건조회_성공() {
             // given
-            User u = mkUser(10L, "charlie", "c@c.com");
+            User u = mkUser(10L, "charlie", "c@c.com", "01012341234");
             given(userRepository.findById(10L)).willReturn(Optional.of(u));
 
             // when
@@ -175,7 +175,7 @@ public class UserServiceTest {
         void 업데이트_성공_이름_이메일() {
             // given
             Long userId = 1L;
-            User user = mkUser(userId, "oldName", "old@old.com");
+            User user = mkUser(userId, "oldName", "old@old.com", "01012341234");
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
             given(userRepository.existsByEmailAndIdNot("new@new.com", userId)).willReturn(false);
 
@@ -201,7 +201,7 @@ public class UserServiceTest {
         void 업데이트_실패_이메일중복() {
             // given
             Long userId = 2L;
-            User user = mkUser(userId, "name", "old@old.com");
+            User user = mkUser(userId, "name", "old@old.com", "01012341234");
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
             given(userRepository.existsByEmailAndIdNot("dup@dup.com", userId)).willReturn(true);
 
@@ -227,7 +227,7 @@ public class UserServiceTest {
         void 업데이트_이름만_변경() {
             // given
             Long userId = 3L;
-            User user = mkUser(userId, "old", "old@old.com");
+            User user = mkUser(userId, "old", "old@old.com", "01012341234");
             given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
             UserRequestDTO dto = UserRequestDTO.builder()
@@ -252,7 +252,7 @@ public class UserServiceTest {
         void 비활성화_성공() {
             // given
             Long userId = 4L;
-            User real = mkUser(userId, "eve", "e@e.com");
+            User real = mkUser(userId, "eve", "e@e.com", "01012341234");
             User spyUser = Mockito.spy(real);
             given(userRepository.findById(userId)).willReturn(Optional.of(spyUser));
 
