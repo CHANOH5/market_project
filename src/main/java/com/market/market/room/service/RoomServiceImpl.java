@@ -1,23 +1,29 @@
 package com.market.market.room.service;
 
+import com.market.market.reservation.entity.Reservation;
+import com.market.market.reservation.repository.ReservationRepository;
 import com.market.market.room.dto.AvailableRoomResponseDTO;
+import com.market.market.room.dto.RoomMonthlyCalendarResponse;
 import com.market.market.room.dto.RoomRequestDTO;
 import com.market.market.room.dto.RoomResponseDTO;
 import com.market.market.room.entity.Room;
 import com.market.market.room.repository.RoomRepository;
-import com.market.market.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
 public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
+    private final ReservationRepository reservationRepository;
 
     /**
      * 객실 정보 생성
@@ -121,6 +127,40 @@ public class RoomServiceImpl implements RoomService {
         // totalPrice, nigths(숙박일수)를 계산하여 반환
 
         return List.of();
+    }
+
+    @Override
+    public RoomMonthlyCalendarResponse getRoomMonthlyCalendar(Long roomId, Integer year, Integer month) {
+
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate endExclusive = start.plusMonths(1);
+
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new IllegalStateException("room not found: " + roomId));
+
+        List<Reservation> reservations = reservationRepository.findOverlappingInMonth(roomId, start, endExclusive);
+
+        // 날짜별 예약 카운트 (하루라도 걸치면 그 날짜 카운트++)
+        Map<LocalDate, Integer> countByDate = new HashMap<>();
+
+        for (Reservation r : reservations) {
+            LocalDate s = r.getCheckInDate().isBefore(start) ? start : r.getCheckInDate();
+            LocalDate e = r.getCheckOutDate().isAfter(endExclusive) ? endExclusive : r.getCheckOutDate();
+
+            for (LocalDate d = s; d.isBefore(e); d = d.plusDays(1)) {
+                countByDate.merge(d, 1, Integer::sum);
+            }
+        }
+
+        int length = start.lengthOfMonth();
+        List<RoomMonthlyCalendarResponse.DayStatus> days = new ArrayList<>(length);
+
+        for (int i = 0; i < length; i++) {
+            LocalDate date = start.plusDays(i);
+            int cnt = countByDate.getOrDefault(date, 0);
+            days.add(new RoomMonthlyCalendarResponse.DayStatus(date, cnt > 0, cnt));
+        }
+
+        return new RoomMonthlyCalendarResponse(room.getId(), room.getName(), year, month, days);
     }
 
 } // end class

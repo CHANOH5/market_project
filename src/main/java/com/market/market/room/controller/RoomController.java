@@ -1,5 +1,6 @@
 package com.market.market.room.controller;
 
+import com.market.market.room.dto.RoomMonthlyCalendarResponse;
 import com.market.market.room.dto.RoomRequestDTO;
 import com.market.market.room.dto.RoomResponseDTO;
 import com.market.market.room.service.RoomService;
@@ -64,6 +65,15 @@ public class RoomController {
     }
 
     // 특정 날짜기준 객실 예약 가능여부 조회, Room 검색(날짜+인원순), 월별 객실 예약 현황 조회 -> 공통적으로 예약정보와 같이 비교해서 봐야함
+
+    @GetMapping("/{roomId}/calendar")
+    public ResponseEntity<RoomMonthlyCalendarResponse> getMonthlyCalendar(
+            @PathVariable Long roomId,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return ResponseEntity.ok(roomService.getRoomMonthlyCalendar(roomId, year, month));
+    }
 
 
 } // end class

@@ -1,6 +1,7 @@
 package com.market.market.room.service;
 
 import com.market.market.room.dto.AvailableRoomResponseDTO;
+import com.market.market.room.dto.RoomMonthlyCalendarResponse;
 import com.market.market.room.dto.RoomRequestDTO;
 import com.market.market.room.dto.RoomResponseDTO;
 
@@ -14,6 +15,7 @@ public interface RoomService {
      * @param dto
      */
     void create(RoomRequestDTO dto);
+
     /**
      * 객실 전체 조회
      * TODO: 페이징 처리, 조회 조건 설정
@@ -49,6 +51,15 @@ public interface RoomService {
      */
    List<AvailableRoomResponseDTO> findAvailableRooms(LocalDate chekIn, LocalDate checkOut, Integer guests);
 
-   // ::TODO 월별 객실 예약 현황 조회, 날짜/인원으로 예약 가능한 Room 리스트 조회, Room 이미지 업로드/삭제
+    /**
+     * 월별 객실 예약 현황 조회(달력)
+     * @param roomId
+     * @param year
+     * @param month
+     * @return
+     */
+    RoomMonthlyCalendarResponse getRoomMonthlyCalendar(Long roomId, Integer year, Integer month);
+
+   // ::TODO Room 이미지 업로드/삭제 (관리자 계정)
 
 } // end class

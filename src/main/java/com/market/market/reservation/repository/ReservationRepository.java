@@ -30,4 +30,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Optional<Reservation> findByIdAndUser_Id(Long reservationId, Long userId);
 
+    @Query("""
+        select r
+        from Reservation r
+        where r.room.id = :roomId
+          and r.status <> com.market.market.reservation.entity.ReservationStatus.CANCELLED
+          and r.checkInDate < :endExclusive
+          and r.checkOutDate > :start
+    """)
+    List<Reservation> findOverlappingInMonth(Long roomId, LocalDate start, LocalDate endExclusive);
+
 } // end class
